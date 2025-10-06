@@ -1,4 +1,4 @@
-# app.py (versão refatorada)
+# app.py (com CSS legível e gráficos claros)
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -9,7 +9,6 @@ from modules.ai_core import AICore
 from modules.predictive_analysis import PredictiveAnalyzer
 from modules.scenario_simulator import ScenarioSimulator
 from modules.sentiment_analysis import SentimentAnalyzer
-# LLM opcional
 try:
     from modules.llm_interface import LocalLLM
 except ImportError:
@@ -19,8 +18,26 @@ except ImportError:
 st.set_page_config(page_title="Cogitara AI", page_icon="🚀", layout="wide")
 st.markdown("""
 <style>
-    .main-header { font-size:1.8rem; color:#7CFC00; text-align:center; margin-bottom:10px;}
-    .stButton>button { border-radius:10px; }
+    /* Fundo e texto */
+    .stApp, .css-18e3th9 {background-color: #f5f5f5 !important; color: #000 !important;}
+    .element-container {background-color: #f5f5f5 !important;}
+    
+    /* Header principal */
+    .main-header {font-size: 1.8rem; color: #006400; text-align:center; margin-bottom:10px;}
+    
+    /* Botões */
+    .stButton>button {
+        border-radius: 10px;
+        background-color: #32CD32 !important;
+        color: white !important;
+        font-weight: bold;
+    }
+
+    /* Inputs e sliders */
+    .stSlider>div, .stTextInput>div, .stNumberInput>div {color: #000 !important;}
+
+    /* Tabelas */
+    .stDataFrame table {background-color: #ffffff !important; color: #000000 !important;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -98,7 +115,7 @@ def dashboard_page():
     num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     if num_cols:
         c = st.selectbox("Coluna numérica", num_cols, key="dashboard_col")
-        fig = px.line(df.reset_index(), y=c, x=df.index, title=f"Evolução de {c}")
+        fig = px.line(df.reset_index(), y=c, x=df.index, title=f"Evolução de {c}", template="plotly_white")
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("Nenhuma coluna numérica para gráfico.")
@@ -119,8 +136,8 @@ def predictive_page():
         run = st.form_submit_button("Executar previsão")
     if run:
         with st.spinner("Treinando e gerando previsão..."):
-            res = st.session_state.ai['predictive'].analyze(df, target, forecast_periods=int(periods),
-                                                           ai_core=st.session_state.ai['core'])
+            res = st.session_state.ai['predictive'].analyze(
+                df, target, forecast_periods=int(periods), ai_core=st.session_state.ai['core'])
             if 'error' in res: st.error(res['error'])
             else:
                 st.plotly_chart(res['forecast_plot'], use_container_width=True)
@@ -146,8 +163,8 @@ def simulator_page():
         run = st.form_submit_button("Simular")
     if run:
         with st.spinner("Simulando..."):
-            sim = st.session_state.ai['simulator'].simulate(df, cols_sel, adjustments,
-                                                            ai_core=st.session_state.ai['core'])
+            sim = st.session_state.ai['simulator'].simulate(
+                df, cols_sel, adjustments, ai_core=st.session_state.ai['core'])
             if 'error' in sim: st.error(sim['error'])
             else:
                 st.write(f"Impacto médio: {sim['total_impact']:.2f}%")
@@ -226,5 +243,4 @@ pages = {
     "Chat Conversacional": chat_page,
     "Análise Autônoma": autonomous_page
 }
-
 pages.get(page, lambda: st.write("Página não implementada"))()
